@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mule Station: Inventory Manifest</title>
+<style>
+  /* ============ tokens ============ */
+  :root{
+    --leather:#241c14; --leather-hi:#31261a; --leather-edge:#0f0b07;
+    --parch:#f4ead0; --parch-alt:#ece0c2; --parch-line:#cdbb91;
+    --ink:#2a2014; --ink-soft:#6f5f44; --gold:#d8a23c; --gold-soft:#a9accd00;
+    --focus:#e7b94e;
+    /* Location palette: the same colour identities used by the in-game MuleStation
+       panel and Bag Mat (custom_mulestation.xml / custom_bagmat.xml), tuned here for
+       light text on dark tags. SHARED PALETTE: if you recolour, change it in both
+       places (this CSS and the skin XML); they cannot share one source across HTML and XML. */
+    --personal:#1f6f5c; --personal-t:#eafff7;
+    --bank:#5e4a8f;     --bank-t:#f3edff;
+    --shared:#9a6a1f;   --shared-t:#fff3df;
+    --vault:#4d7a2e;    --vault-t:#f0ffe4;
+    --equipped:#8a6a1f; --equipped-t:#fff6df;
+    --mounts:#4a5b6b;   --mounts-t:#eef4fa;
+    --familiars:#8a4a5b;--familiars-t:#ffeef2;
+    --overflow:#9a3b2a; --overflow-t:#ffe9e4;
+    --appearance:#5d5547;--appearance-t:#f3eee2;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:var(--leather);
+    color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    font-size:14px;
+    display:flex;flex-direction:column;min-height:100vh;
+  }
+  .mono{font-family:"Consolas",ui-monospace,"DejaVu Sans Mono",monospace;}
+
+  /* ============ header band (leather) ============ */
+  header{
+    background:linear-gradient(180deg,var(--leather-hi),var(--leather));
+    border-bottom:2px solid var(--gold);
+    box-shadow:0 2px 0 var(--leather-edge), 0 6px 14px rgba(0,0,0,.45);
+    padding:14px 20px 12px;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:baseline;gap:14px;}
+  .wordmark{
+    font-family:"Palatino Linotype","Book Antiqua",Georgia,serif;
+    font-size:30px;font-weight:700;letter-spacing:.06em;color:var(--gold);
+    text-shadow:0 1px 0 #000;line-height:1;
+  }
+  .tagline{color:#cbb58c;font-style:italic;font-size:13px;font-family:Georgia,serif;}
+  .snapshot{color:#cbb58c;font-size:12.5px;text-align:right;line-height:1.5;}
+  .snapshot b{color:var(--gold);font-weight:600;}
+
+  /* ============ toolbar ============ */
+  .toolbar{
+    background:var(--leather-hi);
+    border-bottom:1px solid var(--leather-edge);
+    padding:10px 20px;display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;
+  }
+  .btn{
+    font:inherit;font-size:13px;cursor:pointer;color:var(--leather);
+    background:linear-gradient(180deg,#e7c879,#d8a23c);
+    border:1px solid #8a6a1f;border-radius:5px;padding:7px 14px;font-weight:600;
+    box-shadow:0 1px 0 rgba(255,255,255,.3) inset, 0 1px 2px rgba(0,0,0,.4);
+  }
+  .btn:hover{filter:brightness(1.07);}
+  .btn:active{transform:translateY(1px);}
+  .btn.ghost{background:transparent;color:#e6d3a3;border-color:#6b5a3a;box-shadow:none;}
+  .btn.ghost:hover{background:rgba(216,162,60,.12);}
+  .search{
+    flex:1 1 220px;min-width:160px;font:inherit;font-size:13px;
+    background:#1a140d;color:#f2e6c8;border:1px solid #5a4a30;border-radius:5px;padding:7px 11px;
+  }
+  .search::placeholder{color:#8a795a;}
+  .switcher{font:inherit;font-size:13px;background:#1a140d;color:#f2e6c8;border:1px solid #5a4a30;border-radius:5px;padding:6px 8px;cursor:pointer;}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:1px;}
+
+  /* ============ filter chips ============ */
+  .chips{display:flex;gap:6px;flex-wrap:wrap;padding:9px 20px;background:#1c150e;border-bottom:1px solid var(--leather-edge);}
+  .chips .grp-label{color:#8a795a;font-size:11px;letter-spacing:.1em;text-transform:uppercase;align-self:center;margin-right:2px;}
+  .chip{
+    font:inherit;font-size:12px;cursor:pointer;border-radius:11px;padding:3px 11px;
+    border:1px solid transparent;background:#2c2417;color:#cbb892;
+  }
+  .chip[aria-pressed="true"]{color:#fff;border-color:rgba(255,255,255,.35);box-shadow:0 0 0 1px rgba(0,0,0,.3) inset;}
+  .chip.loc[aria-pressed="true"]{background:var(--c);}
+  .chip.tier[aria-pressed="true"]{background:#6b5a36;color:#fff5dd;}
+  .chip:hover{filter:brightness(1.12);}
+
+  /* ============ stats strip (parchment) ============ */
+  .stats{
+    display:flex;gap:24px;flex-wrap:wrap;background:var(--parch);
+    border-bottom:1px solid var(--parch-line);padding:10px 20px;
+  }
+  .stat{display:flex;flex-direction:column;}
+  .stat .n{font-family:Georgia,serif;font-size:20px;font-weight:700;color:var(--ink);line-height:1;}
+  .stat .l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-top:3px;}
+  .stat.flag .n{color:#9a3b2a;}
+
+  /* ============ manifest table ============ */
+  .sheet{flex:1;background:var(--parch);overflow:auto;}
+  table{border-collapse:collapse;width:100%;}
+  thead th{
+    position:sticky;top:0;z-index:2;
+    background:#e7d8b4;color:var(--ink);
+    font-family:Georgia,serif;font-weight:700;font-size:12.5px;letter-spacing:.03em;
+    text-align:left;padding:9px 12px;border-bottom:2px solid var(--gold);
+    cursor:pointer;user-select:none;white-space:nowrap;
+  }
+  thead th .arr{color:var(--shared);font-size:11px;}
+  thead th.num{text-align:right;}
+  tbody td{padding:6px 12px;border-bottom:1px solid var(--parch-line);vertical-align:middle;}
+  tbody tr:nth-child(even){background:var(--parch-alt);}
+  tbody tr:hover{background:#f7efd9;}
+  td.num{text-align:right;font-family:"Consolas",monospace;}
+  td.item{font-weight:600;color:var(--ink);}
+  td.item .nm-hover{cursor:help;text-decoration:underline dotted rgba(120,90,40,.45);text-underline-offset:2px;}
+  .scroll{margin-right:6px;font-size:12px;cursor:help;}
+  td.hint-cell{cursor:help;}
+  .tier-pill{display:inline-block;min-width:26px;text-align:center;border-radius:4px;padding:1px 6px;font-family:"Consolas",monospace;font-size:12px;font-weight:700;background:#dcc99c;color:#4a3a18;}
+  .muted{color:var(--ink-soft);}
+  /* Tooltip popup for the optional "Item tooltips" feature (wiki image on hover). */
+  .icon-pop{position:fixed;z-index:1000;background:var(--parch);border:2px solid var(--gold);border-radius:6px;padding:5px;box-shadow:0 8px 28px rgba(0,0,0,.55);pointer-events:none;}
+  .icon-pop img{display:block;max-width:320px;max-height:440px;}
+  .toggle{display:flex;align-items:center;gap:6px;color:#cbb892;font-size:12.5px;cursor:pointer;user-select:none;}
+  .toggle input{accent-color:var(--gold);}
+  /* location tags */
+  .tags{display:flex;gap:4px;flex-wrap:wrap;}
+  .tag{display:inline-flex;align-items:center;gap:5px;border-radius:4px;padding:2px 8px;font-size:11.5px;font-weight:600;color:#fff;white-space:nowrap;}
+  .tag .ct{opacity:.75;font-family:"Consolas",monospace;font-weight:600;}
+  .tag.personal{background:var(--personal);color:var(--personal-t);}
+  .tag.bank{background:var(--bank);color:var(--bank-t);}
+  .tag.shared{background:var(--shared);color:var(--shared-t);}
+  .tag.vault{background:var(--vault);color:var(--vault-t);}
+  .tag.equipped{background:var(--equipped);color:var(--equipped-t);}
+  .tag.mounts{background:var(--mounts);color:var(--mounts-t);}
+  .tag.familiars{background:var(--familiars);color:var(--familiars-t);}
+  .tag.overflow{background:var(--overflow);color:var(--overflow-t);}
+  .tag.appearance{background:var(--appearance);color:var(--appearance-t);}
+
+  /* ============ empty state ============ */
+  .empty{flex:1;display:flex;align-items:center;justify-content:center;background:var(--parch);padding:40px;}
+  .empty-card{max-width:560px;text-align:center;}
+  .empty-card h2{font-family:"Palatino Linotype",Georgia,serif;color:var(--ink);font-size:24px;margin:0 0 8px;}
+  .empty-card p{color:var(--ink-soft);line-height:1.6;margin:0 0 16px;}
+  .empty-card ol{text-align:left;display:inline-block;color:var(--ink);line-height:1.8;margin:0 0 18px;}
+  .empty-card code{background:#e3d4ad;padding:1px 6px;border-radius:3px;font-size:13px;}
+
+  /* paste panel */
+  .paste-wrap{padding:14px 20px;background:var(--parch);border-bottom:1px solid var(--parch-line);display:none;}
+  .paste-wrap.open{display:block;}
+  .chars-wrap{padding:12px 20px;background:var(--parch);border-bottom:1px solid var(--parch-line);display:none;}
+  .chars-wrap.open{display:block;}
+  .chars-head{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+  .char-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--parch-line);}
+  .char-row .nm{font-weight:600;min-width:160px;}
+  .char-row .sv{color:var(--ink-soft);font-size:12px;min-width:90px;}
+  .char-row .x{margin-left:auto;cursor:pointer;color:var(--ink-soft);border:none;background:none;font-size:15px;}
+  .chars-add{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .mini{font:inherit;font-size:13px;border:1px solid var(--parch-line);border-radius:5px;padding:6px 9px;}
+  .badge{font-size:11px;font-weight:700;border-radius:10px;padding:2px 9px;white-space:nowrap;}
+  .badge.ok{background:#1f6f5c;color:#eafff7;}
+  .badge.warn{background:#9a6a1f;color:#fff3df;}
+  .badge.bad{background:#9a3b2a;color:#ffe9e4;}
+  .warnbar{padding:8px 20px;font-size:13px;font-weight:600;}
+  .warnbar.warn{background:#9a6a1f;color:#fff3df;}
+  .warnbar.bad{background:#9a3b2a;color:#ffe9e4;}
+  .paste-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .paste-grid label{font-size:12px;color:var(--ink-soft);font-weight:600;display:block;margin-bottom:4px;}
+  textarea{width:100%;height:120px;font-family:"Consolas",monospace;font-size:12px;border:1px solid var(--parch-line);border-radius:5px;padding:8px;resize:vertical;}
+  @media(max-width:640px){.paste-grid{grid-template-columns:1fr;}}
+
+  /* settings panel */
+  .settings-wrap{padding:14px 20px;background:var(--parch);border-bottom:1px solid var(--parch-line);display:none;}
+  .settings-wrap.open{display:block;}
+  .set-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .set-grid section h4{margin:0 0 8px;font-family:Georgia,serif;color:var(--ink);font-size:13px;letter-spacing:.04em;border-bottom:1px solid var(--parch-line);padding-bottom:4px;}
+  .set-row{display:block;margin:0 0 12px;color:var(--ink);font-size:13px;line-height:1.4;}
+  .set-row .hint{display:block;color:var(--ink-soft);font-size:11px;margin-top:3px;line-height:1.4;}
+  .set-row input[type=checkbox]{accent-color:var(--gold);margin-right:6px;vertical-align:middle;}
+  .set-row .mini{margin:4px 6px 0 0;}
+  .set-row .mini.num{width:64px;}
+  .set-row .btn{margin:0 6px 4px 0;}
+  .btn.danger{color:#ffd9d0;border-color:#7a3326;background:rgba(154,59,42,.18);box-shadow:none;}
+  .set-env{margin-top:6px;font-size:12px;color:var(--ink-soft);border-top:1px dashed var(--parch-line);padding-top:8px;line-height:1.5;}
+  .set-env b{color:var(--ink);}
+  @media(max-width:760px){.set-grid{grid-template-columns:1fr;}}
+  /* first-load modal */
+  .modal-back{position:fixed;inset:0;z-index:2000;background:rgba(10,7,4,.62);display:flex;align-items:center;justify-content:center;padding:24px;}
+  .modal{background:var(--parch);border:2px solid var(--gold);border-radius:10px;max-width:560px;width:100%;padding:22px 24px;box-shadow:0 14px 50px rgba(0,0,0,.6);position:relative;}
+  .modal h2{font-family:"Palatino Linotype",Georgia,serif;color:var(--ink);font-size:22px;margin:0 0 6px;}
+  .modal code{background:#e3d4ad;padding:1px 5px;border-radius:3px;font-size:12px;}
+  .modal-x{position:absolute;top:10px;right:14px;border:none;background:none;font-size:22px;line-height:1;color:var(--ink-soft);cursor:pointer;}
+  .modal-env{font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;line-height:1.5;}
+  .modal-env b{color:var(--ink);}
+  .modal-steps{list-style:none;margin:0 0 14px;padding:0;}
+  .modal-steps li{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid var(--parch-line);}
+  .modal-steps .ck{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--parch-line);margin-top:1px;position:relative;}
+  .modal-steps li.done .ck{background:var(--vault);border-color:var(--vault);}
+  .modal-steps li.done .ck::after{content:"\2713";color:#fff;font-size:13px;font-weight:700;position:absolute;left:3px;top:-2px;}
+  .modal-steps b{color:var(--ink);font-size:13.5px;}
+  .modal-steps .sub{color:var(--ink-soft);font-size:12px;margin-top:2px;line-height:1.4;}
+  .modal-success{background:var(--vault);color:#f0ffe4;border-radius:6px;padding:9px 12px;font-size:13px;font-weight:600;margin-bottom:12px;}
+  .modal-actions{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px;}
+  .modal-note{font-size:11.5px;color:var(--ink-soft);line-height:1.5;border-top:1px dashed var(--parch-line);padding-top:9px;}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--leather-hi);color:#f2e6c8;border:1px solid var(--gold);border-radius:6px;padding:9px 16px;font-size:13px;z-index:3000;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+  #toast.show{opacity:1;}
+  footer{background:var(--leather);color:#7a6a4c;font-size:11px;padding:8px 20px;border-top:1px solid var(--leather-edge);}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="wordmark">Mule Station</span>
+    <span class="tagline">inventory manifest</span>
+  </div>
+  <div class="snapshot" id="snapshot">no manifest loaded</div>
+</header>
+
+<div class="toolbar">
+  <button class="btn" id="loadBtn">Load files</button>
+  <input type="file" id="filein" multiple accept=".txt" class="hidden">
+  <button class="btn" id="scanBtn" title="Point at your EverQuest2 folder; the app finds the inventory and dump files itself">Scan folder</button>
+  <input type="file" id="dirin" webkitdirectory class="hidden">
+  <button class="btn" id="defBtn" title="Fetch watch-list characters' files by their known path. Works only with a COPY of this app in your EverQuest2 folder, opened in a normal browser.">Load defaults</button>
+  <button class="btn ghost" id="charsBtn">Characters</button>
+  <select id="charSwitch" class="switcher hidden" title="Switch character"></select>
+  <button class="btn ghost" id="pasteToggle">Paste instead</button>
+  <input class="search" id="search" type="search" placeholder="Search items..." autocomplete="off">
+  <label class="toggle" title="Hover an item name to see its EQ2 wiki tooltip (the only outside call; off by default)"><input type="checkbox" id="iconToggle"> Item tooltips</label>
+  <button class="btn ghost" id="clearBtn">Clear filters</button>
+  <button class="btn ghost" id="settingsBtn">Settings</button>
+</div>
+
+<div class="paste-wrap" id="pasteWrap">
+  <div class="paste-grid">
+    <div>
+      <label>Inventory file (output_inventory_to_file)</label>
+      <textarea id="pasteInv" placeholder="Paste the contents of Wuoshi_Biornn_Inventory.txt"></textarea>
+    </div>
+    <div>
+      <label>Dump file (dump_items_to_log)</label>
+      <textarea id="pasteDump" placeholder="Paste the contents of invdump.txt"></textarea>
+    </div>
+  </div>
+  <div style="margin-top:10px;"><button class="btn" id="pasteLoad">Load pasted text</button></div>
+</div>
+
+<div class="chars-wrap" id="charsWrap">
+  <div class="chars-head">Characters: who's loaded, and whether their dump is current.</div>
+  <div id="charsList"></div>
+  <div class="chars-add">
+    <input id="addChar" class="mini" placeholder="Character name" autocomplete="off">
+    <input id="addServer" class="mini" placeholder="Server (optional)" autocomplete="off">
+    <button class="btn" id="addCharBtn">Add to watch list</button>
+  </div>
+</div>
+
+<div class="settings-wrap" id="settingsWrap">
+  <div class="set-grid">
+    <section>
+      <h4>Loading</h4>
+      <label class="set-row"><input type="checkbox" id="cfgAutoDef"> Auto-run &ldquo;Load defaults&rdquo; on open
+        <span class="hint">Pulls watch-list files by path when the app opens. Works only with a copy in your EverQuest 2 folder, opened in a normal browser; ignored in-game.</span></label>
+      <label class="set-row">Dump filename pattern
+        <input class="mini" id="cfgDumpPat" placeholder="&lt;Char&gt;invdump.txt">
+        <span class="hint">The standard Export button writes a generic invdump.txt; leave this as-is. Only use a &lt;Char&gt; pattern (e.g. &lt;Char&gt;invdump.txt) if you set up per-character dump macros. With the generic file, the app attributes it to whichever character was exported most recently.</span></label>
+      <div class="set-row"><button class="btn ghost" id="cfgGuide">Open load guide</button></div>
+    </section>
+    <section>
+      <h4>Display</h4>
+      <label class="set-row">Consider data stale after
+        <input class="mini num" id="cfgStale" type="number" min="0" step="1"> hours
+        <span class="hint">A character whose newest file is older than this gets a stale warning. 0 turns the age check off; the dump-older-than-inventory check still runs. Files pulled by Load defaults have no timestamp, so they're exempt.</span></label>
+      <label class="set-row"><input type="checkbox" id="cfgTipsDef"> Turn on item tooltips by default</label>
+    </section>
+    <section>
+      <h4>Data</h4>
+      <div class="set-row"><button class="btn ghost" id="cfgExport">Copy settings</button><button class="btn ghost" id="cfgImport">Paste settings</button>
+        <span class="hint">The in-game and external browsers keep separate storage; copy here, paste there to share settings.</span></div>
+      <div class="set-row"><button class="btn ghost danger" id="cfgReset">Reset everything</button>
+        <span class="hint">Clears loaded data, settings, watch list, and the tooltip cache.</span></div>
+    </section>
+  </div>
+  <div class="set-env" id="setEnv"></div>
+</div>
+
+<div class="chips" id="locChips"><span class="grp-label">Location</span></div>
+<div class="chips" id="tierChips"><span class="grp-label">Tier</span></div>
+
+<div class="warnbar hidden" id="warnbar"></div>
+<div class="stats" id="stats"></div>
+
+<div class="sheet" id="sheet"><table id="grid"><thead></thead><tbody></tbody></table></div>
+
+<div class="empty" id="empty">
+  <div class="empty-card">
+    <h2>The binder is empty</h2>
+    <p>Snapshot your mule in-game, then bring the two files here. Everything stays on your machine; nothing is uploaded.</p>
+    <ol>
+      <li>In MuleStation, click <code>Export Snapshot</code></li>
+      <li>Back here, click <code>Load files</code> and pick both:</li>
+      <li><code>&lt;Server&gt;_&lt;Char&gt;_Inventory.txt</code> (location) and <code>invdump.txt</code> (tier &amp; quantity)</li>
+    </ol>
+    <p class="muted">Order doesn't matter; each file is recognized by its contents. One file alone works too; you'll just see fewer columns.</p>
+  </div>
+</div>
+
+<footer id="foot">&#128220; next to an item means an EQ2 wiki tooltip is available; hover the name to view it. Mule Station reads your local export files; only the optional Item tooltips feature calls out to the wiki. Layer for duplicated bag names is best-effort.</footer>
+
+<div class="modal-back hidden" id="loadModal">
+  <div class="modal">
+    <button class="modal-x" id="modalX" title="Close">&times;</button>
+    <h2>Load your inventory</h2>
+    <div class="modal-env" id="modalEnv"></div>
+    <ol class="modal-steps">
+      <li id="st-export"><span class="ck"></span><div><b>Export in-game</b><div class="sub">In MuleStation, click Export Snapshot to write your files.</div></div></li>
+      <li id="st-inv"><span class="ck"></span><div><b>Inventory loaded</b><div class="sub" id="sub-inv">Not loaded yet.</div></div></li>
+      <li id="st-dump"><span class="ck"></span><div><b>Item details loaded</b><div class="sub" id="sub-dump">Optional; adds tier and quantity.</div></div></li>
+    </ol>
+    <div class="modal-success hidden" id="modalSuccess"></div>
+    <div class="modal-actions" id="modalActions"></div>
+    <div class="modal-note" id="modalNote"></div>
+  </div>
+</div>
+<div id="iconPop" class="icon-pop hidden"><img id="iconPopImg" alt=""></div>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+
+/* ============ environment + config ============ */
+/* Detect whether we are running in EQ2's embedded CEF browser. That build reports an
+   old Chromium and is not Firefox; we use it to disable file-path features it blocks. */
+const UA = navigator.userAgent || "";
+const _cm = UA.match(/Chrome\/(\d+)/);
+const chromeMajor = _cm ? +_cm[1] : 0;
+const isFirefox = /Firefox\//.test(UA);
+const isInGame = chromeMajor > 0 && chromeMajor <= 100 && !isFirefox;
+const envLabel = isInGame
+  ? ("In-game browser (EQ2 \u00B7 Chromium " + chromeMajor + ")")
+  : (isFirefox
+      ? "External browser (Firefox)"
+      : (chromeMajor ? ("External browser (Chrome " + chromeMajor + ")") : "External browser"));
+
+const CFG_DEFAULTS = { autoDefaults:false, dumpPattern:"invdump.txt", staleHours:24, tooltipsDefault:false };
+let cfg = Object.assign({}, CFG_DEFAULTS);
+
+/* Load saved settings, falling back to defaults on any parse error. */
+function loadCfg(){
+  try{ cfg = Object.assign({}, CFG_DEFAULTS, JSON.parse(localStorage.getItem("mulestation_config") || "{}")); }
+  catch(e){ cfg = Object.assign({}, CFG_DEFAULTS); }
+}
+/* Persist settings. */
+function saveCfg(){
+  try{ localStorage.setItem("mulestation_config", JSON.stringify(cfg)); }
+  catch(e){}
+}
+
+/* ============ data model ============ */
+/* Display names for each storage layer. */
+const LAYERS = {
+  personal:{label:"Personal"}, bank:{label:"Bank"}, shared:{label:"Shared"},
+  vault:{label:"House Vault"}, equipped:{label:"Equipped"}, mounts:{label:"Mounts"},
+  familiars:{label:"Familiars"}, overflow:{label:"Overflow"}, appearance:{label:"Appearance"}
+};
+/* Maps each layer to its CSS colour token (see the shared palette note in :root). */
+const LAYER_VAR = {
+  personal:"--personal", bank:"--bank", shared:"--shared", vault:"--vault",
+  equipped:"--equipped", mounts:"--mounts", familiars:"--familiars", overflow:"--overflow", appearance:"--appearance"
+};
+
+/* Per-character data lives in state.roster, keyed by server+char. The active character's
+   text is read through active() rather than mirrored onto state, so there is one source of truth. */
+let state = {
+  rows:[], sortKey:"name", sortAsc:true, search:"", icons:false,
+  roster:{}, activeKey:null, locFilter:new Set(), tierFilter:new Set()
+};
+
+/* The roster entry for the active character, or null if none is selected. */
+function active(){ return state.activeKey ? state.roster[state.activeKey] : null; }
+
+/* ============ item-name parsing ============ */
+/* Count occurrences of each value in an array. */
+function countMap(arr){
+  const m = {};
+  for(const x of arr) m[x] = (m[x] || 0) + 1;
+  return m;
+}
+
+/* Strip EQ2 localization markup: {n}Singular{pl='Plural'} -> Singular */
+function cleanName(raw){
+  let s = String(raw).trim();
+  const m = s.match(/^\{n\}(.+?)\{pl=/);
+  if(m) s = m[1];
+  s = s.replace(/\{[^}]*\}/g, "").trim();
+  return s || String(raw).trim();
+}
+
+/* ============ wiki tooltip (the "Item tooltips" feature) ============ */
+/* NOTE: throughout the code the internal name for this feature is "icons" (state.icons,
+   iconCache, the mulestation_icons storage key, the #iconToggle element). The user-facing
+   label is "Item tooltips". The storage-key strings are kept as-is so existing caches are
+   not orphaned; treat "icons" and "Item tooltips" as the same feature. */
+
+/* Build candidate wiki image URLs for a name. An <img>/Image follows the redirect
+   cross-origin, so we never fetch these ourselves. */
+function iconCandidates(name){
+  const u = name.replace(/\s+/g, "_");
+  const cap = u.charAt(0).toUpperCase() + u.slice(1);
+  const title = u.split("_").map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join("_");
+  const list = [...new Set([cap, title, u])];
+  return list.map(fn => "https://eq2.fandom.com/wiki/Special:FilePath/" + encodeURIComponent(fn) + ".png?width=28");
+}
+
+let iconCache = {};
+/* Load the cached name->URL map (or "none" markers) from storage. */
+function loadIconCache(){
+  try{ iconCache = JSON.parse(localStorage.getItem("mulestation_icons") || "{}"); }
+  catch(e){ iconCache = {}; }
+}
+/* Persist the cache. */
+function saveIconCache(){
+  try{ localStorage.setItem("mulestation_icons", JSON.stringify(iconCache)); }
+  catch(e){}
+}
+
+/* Single prober for both the hover path and eager discovery: walk the candidate URLs
+   until one loads, cache the result (or "none"), then invoke cb. */
+function probeIcon(name, cb){
+  const cands = iconCandidates(name);
+  let i = 0;
+  const probe = new Image();
+  probe.onload = function(){
+    iconCache[name] = probe.src;
+    saveIconCache();
+    if(cb) cb();
+  };
+  probe.onerror = function(){
+    i++;
+    if(i < cands.length){ probe.src = cands[i]; }
+    else { iconCache[name] = "none"; saveIconCache(); if(cb) cb(); }
+  };
+  probe.src = cands[0];
+}
+
+/* Show the tooltip popup for a resolved image URL near the cursor. */
+function showIconPop(src, e){
+  if(!src) return;
+  const pop = document.getElementById("iconPop");
+  const im = document.getElementById("iconPopImg");
+  im.src = src.replace(/\?width=\d+/, "?width=320");
+  pop.classList.remove("hidden");
+  moveIconPop(e);
+}
+/* Keep the popup beside the cursor and inside the viewport. */
+function moveIconPop(e){
+  const pop = document.getElementById("iconPop");
+  if(pop.classList.contains("hidden")) return;
+  const pad = 16, w = pop.offsetWidth || 340, h = pop.offsetHeight || 340;
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if(x + w > window.innerWidth) x = e.clientX - w - pad;
+  if(y + h > window.innerHeight) y = window.innerHeight - h - pad;
+  if(y < pad) y = pad;
+  if(x < pad) x = pad;
+  pop.style.left = x + "px";
+  pop.style.top = y + "px";
+}
+/* Hide the popup. */
+function hideIconPop(){ document.getElementById("iconPop").classList.add("hidden"); }
+
+let hoverName = null, lastMouse = {clientX:0, clientY:0};
+/* Item-name hover entered: show the cached image, or probe for one if unknown. */
+function onNameEnter(name, e){
+  hoverName = name;
+  lastMouse = e;
+  if(!state.icons) return;
+  const c = iconCache[name];
+  if(c === "none") return;
+  if(c){ showIconPop(c, e); return; }
+  probeIcon(name, function(){
+    const found = iconCache[name];
+    if(hoverName === name && found && found !== "none") showIconPop(found, lastMouse);
+  });
+}
+/* Track the cursor while hovering a name. */
+function onNameMove(e){ lastMouse = e; moveIconPop(e); }
+/* Hover left: clear the tracked name and hide the popup. */
+function onNameLeave(){ hoverName = null; hideIconPop(); }
+
+/* Eagerly probe every name (5 in flight), re-rendering periodically so scroll markers appear. */
+function discoverAll(names){
+  if(!state.icons) return;
+  const todo = names.filter(n => iconCache[n] === undefined);
+  if(!todo.length) return;
+  let i = 0, done = 0;
+  const total = todo.length;
+  function worker(){
+    if(i >= total) return;
+    const name = todo[i++];
+    probeIcon(name, function(){
+      done++;
+      if(done % 20 === 0 || done === total) render();
+      if(i < total) worker();
+    });
+  }
+  for(let w = 0; w < Math.min(5, total); w++) worker();
+}
+
+/* ============ inventory + dump parsing ============ */
+/* Parse output_inventory_to_file: returns one occurrence record per item slot, with the
+   container name and its layer. Bag layer is inferred greedily from the Bank / Shared Bank
+   bag-name lists (shared first, then bank, else personal). */
+function parseInventory(text){
+  const lines = text.split(/\r?\n/);
+  const bags = [];                 // ordered: {name, items:[{name,slot}]}
+  const other = [];                // {name, layer, container, slot}
+  const bankNames = [], sharedNames = [];
+  let section = null, curBag = null;
+  for(const raw of lines){
+    if(!raw.trim()) continue;
+    const indented = /^\s/.test(raw);
+    const line = raw.trim();
+    if(!indented){
+      const top = line.match(/^\[([^\]]+)\]\s*(.*)$/);
+      if(top){
+        const tag = top[1].trim(), rest = top[2].trim();
+        if(tag === "Bag"){ section = "bag"; curBag = {name: rest || "(unnamed bag)", items: []}; bags.push(curBag); }
+        else { section = tag.toLowerCase().replace(/\s+/g, "_"); curBag = null; }
+      }
+      continue;
+    }
+    const bracket = line.match(/^\[([^\]]+)\]\s+(.+)$/);
+    if(section === "bag" && bracket){ const m = bracket[1].match(/(\d+)/); curBag.items.push({name: bracket[2].trim(), slot: m ? +m[1] : null}); continue; }
+    if(section === "bank" && bracket){ bankNames.push(bracket[2].trim()); continue; }
+    if(section === "shared_bank" && bracket){ sharedNames.push(bracket[2].trim()); continue; }
+    if(section === "equipped_items" && bracket){ other.push({name: bracket[2].trim(), layer:"equipped", container:"Equipped", slot: bracket[1].trim()}); continue; }
+    if(section === "house_vault" && bracket){ const m = bracket[1].match(/(\d+)/); other.push({name: bracket[2].trim(), layer:"vault", container:"House Vault", slot: m ? +m[1] : null}); continue; }
+    if(section === "overflow" && bracket){ other.push({name: bracket[2].trim(), layer:"overflow", container:"Overflow", slot: bracket[1].trim()}); continue; }
+    if(section === "mounts"){ other.push({name: line, layer:"mounts", container:"Mounts", slot:null}); continue; }
+    if(section === "familiars"){ other.push({name: line, layer:"familiars", container:"Familiars", slot:null}); continue; }
+    if(section === "appearance_items" && bracket){ other.push({name: bracket[2].trim(), layer:"appearance", container:"Appearance", slot: bracket[1].trim()}); continue; }
+  }
+  // greedy layer assignment for bags (shared, then bank, else personal)
+  const sPool = countMap(sharedNames), bPool = countMap(bankNames);
+  for(const b of bags){
+    if(sPool[b.name] > 0){ b.layer = "shared"; sPool[b.name]--; }
+    else if(bPool[b.name] > 0){ b.layer = "bank"; bPool[b.name]--; }
+    else b.layer = "personal";
+  }
+  const occ = [];
+  for(const b of bags) for(const it of b.items) occ.push({name: it.name, container: b.name, layer: b.layer, slot: it.slot});
+  for(const o of other) occ.push(o);
+  return occ;
+}
+
+/* Parse dump_items_to_log: returns name -> {qty, tier, level, stacks, sizes}. Multiple
+   lines for one name accumulate quantity and stack sizes. */
+function parseDump(text){
+  const map = {};
+  const re = /\]\s+\d+:\s+(.*?)\s+VectorPos=-?\d+\s+BagSlot=-?\d+\s+StackCount=(-?\d+)\s+Level=(-?\d+)\s+Tier=(-?\d+)/;
+  for(const line of text.split(/\r?\n/)){
+    const m = line.match(re);
+    if(!m) continue;
+    const name = cleanName(m[1]);
+    if(!name) continue;
+    const stack = +m[2], level = +m[3], tier = +m[4];
+    const e = map[name] || (map[name] = {qty:0, tier, level, stacks:0, sizes:[]});
+    e.stacks++;
+    e.qty += stack > 0 ? stack : 1;
+    e.tier = tier;
+    e.level = level;
+    e.sizes.push(stack > 0 ? stack : 1);
+  }
+  return map;
+}
+
+/* Classify a loaded file as an inventory export or a dump, or null if neither. */
+function detect(text){
+  if(/^\s*\[Equipped Items\]/m.test(text) || /^\s*\[Bag\]/m.test(text)) return "inv";
+  if(/VectorPos=/.test(text)) return "dump";
+  return null;
+}
+
+/* ============ merge into rows ============ */
+/* Merge the active character's inventory occurrences with its dump details into state.rows,
+   keyed by item name. Inventory gives WHERE (layers, containers, per-layer counts); the dump
+   gives WHAT (tier, level, qty, stack sizes). */
+function build(){
+  const a = active();
+  const invText = a ? (a.invText || "") : "";
+  const dumpText = a ? (a.dumpText || "") : "";
+  const occ = invText ? parseInventory(invText) : [];
+  occ.forEach(o => { o.name = cleanName(o.name); });
+  const dump = dumpText ? parseDump(dumpText) : {};
+  const byName = {};
+  for(const o of occ){
+    const e = byName[o.name] || (byName[o.name] = {name: o.name, occ:0, layers:{}, locs:{}});
+    e.occ++;
+    e.layers[o.layer] = (e.layers[o.layer] || 0) + 1;
+    (e.locs[o.container] || (e.locs[o.container] = {layer: o.layer, n:0})).n++;
+  }
+  // include dump-only items if no inventory loaded
+  if(!invText){ for(const n in dump){ byName[n] = byName[n] || {name:n, occ:0, layers:{}, locs:{}}; } }
+  const rows = [];
+  for(const n in byName){
+    const e = byName[n], d = dump[n];
+    rows.push({
+      name:n, occ:e.occ,
+      qty: d ? d.qty : null, tier: d ? d.tier : null, level: d ? d.level : null, stacks: d ? d.stacks : null,
+      sizes: d ? d.sizes : null,
+      layers: Object.keys(e.layers).sort(), layerCounts: e.layers, locs: e.locs
+    });
+  }
+  state.rows = rows;
+}
+
+/* ============ rendering: chips, table, stats ============ */
+/* Resolve a layer's colour from its CSS token. */
+function layerColor(k){ return getComputedStyle(document.documentElement).getPropertyValue(LAYER_VAR[k] || "--appearance"); }
+
+/* Rebuild the Location and Tier filter chips from the layers and tiers actually present. */
+function renderChips(){
+  const locWrap = $("#locChips"), tierWrap = $("#tierChips");
+  // gather present layers & tiers
+  const layersPresent = new Set(), tiersPresent = new Set();
+  state.rows.forEach(r => {
+    r.layers.forEach(l => layersPresent.add(l));
+    if(r.tier != null) tiersPresent.add(r.tier);
+  });
+  // location chips
+  locWrap.querySelectorAll(".chip").forEach(c => c.remove());
+  Object.keys(LAYERS).filter(k => layersPresent.has(k)).forEach(k => {
+    const c = document.createElement("button");
+    c.className = "chip loc";
+    c.textContent = LAYERS[k].label;
+    c.style.setProperty("--c", layerColor(k));
+    c.setAttribute("aria-pressed", state.locFilter.has(k));
+    c.onclick = () => { toggle(state.locFilter, k); c.setAttribute("aria-pressed", state.locFilter.has(k)); render(); save(); };
+    locWrap.appendChild(c);
+  });
+  // tier chips
+  tierWrap.querySelectorAll(".chip").forEach(c => c.remove());
+  [...tiersPresent].sort((a,b) => a - b).forEach(t => {
+    const c = document.createElement("button");
+    c.className = "chip tier";
+    c.textContent = "T" + t;
+    c.setAttribute("aria-pressed", state.tierFilter.has(t));
+    c.onclick = () => { toggle(state.tierFilter, t); c.setAttribute("aria-pressed", state.tierFilter.has(t)); render(); save(); };
+    tierWrap.appendChild(c);
+  });
+  tierWrap.style.display = tiersPresent.size ? "" : "none";
+}
+
+/* Add or remove a value from a Set. */
+function toggle(set, v){ set.has(v) ? set.delete(v) : set.add(v); }
+
+/* Apply the search box and the active location/tier filters to state.rows. */
+function filtered(){
+  const q = state.search.toLowerCase();
+  return state.rows.filter(r => {
+    if(q && r.name.toLowerCase().indexOf(q) < 0) return false;
+    if(state.locFilter.size && !r.layers.some(l => state.locFilter.has(l))) return false;
+    if(state.tierFilter.size && !state.tierFilter.has(r.tier)) return false;
+    return true;
+  });
+}
+
+/* Sort rows by the active column, nulls last, numbers numerically and text case-insensitively. */
+function sortRows(rows){
+  const k = state.sortKey, asc = state.sortAsc ? 1 : -1;
+  return rows.slice().sort((a,b) => {
+    let x = a[k], y = b[k];
+    if(k === "layers"){ x = a.layers[0] || ""; y = b.layers[0] || ""; }
+    if(x == null && y == null) return 0;
+    if(x == null) return 1;
+    if(y == null) return -1;
+    if(typeof x === "number" && typeof y === "number") return (x - y) * asc;
+    return String(x).toLowerCase().localeCompare(String(y).toLowerCase()) * asc;
+  });
+}
+
+const COLS = [
+  {k:"name",   label:"Item",     cls:"item"},
+  {k:"tier",   label:"Tier",     cls:"num"},
+  {k:"qty",    label:"Qty",      cls:"num"},
+  {k:"level",  label:"Lvl",      cls:"num"},
+  {k:"layers", label:"Location", cls:""},
+  {k:"stacks", label:"Stacks",   cls:"num"}
+];
+
+/* Render the manifest table: header (with sort arrows), one row per item, then the stats strip. */
+function render(){
+  const rows = sortRows(filtered());
+  const thead = $("#grid thead"), tbody = $("#grid tbody");
+
+  thead.innerHTML = "";
+  const htr = document.createElement("tr");
+  COLS.forEach(col => {
+    const th = document.createElement("th");
+    if(col.cls === "num") th.className = "num";
+    const arr = state.sortKey === col.k ? (state.sortAsc ? " \u25B2" : " \u25BC") : "";
+    th.innerHTML = col.label + '<span class="arr">' + arr + '</span>';
+    th.onclick = () => {
+      if(state.sortKey === col.k) state.sortAsc = !state.sortAsc;
+      else { state.sortKey = col.k; state.sortAsc = true; }
+      render();
+      save();
+    };
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr);
+
+  tbody.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+
+    // item name (with optional tooltip hover + scroll marker)
+    let td = document.createElement("td");
+    td.className = "item";
+    if(state.icons){
+      td.addEventListener("mouseenter", e => onNameEnter(r.name, e));
+      td.addEventListener("mousemove", onNameMove);
+      td.addEventListener("mouseleave", onNameLeave);
+      if(typeof iconCache[r.name] === "string" && iconCache[r.name] !== "none"){
+        const sc = document.createElement("span");
+        sc.className = "scroll";
+        sc.textContent = "\uD83D\uDCDC";
+        sc.title = "Wiki tooltip: hover to view";
+        td.appendChild(sc);
+      }
+    }
+    const nm = document.createElement("span");
+    nm.textContent = r.name;
+    if(state.icons) nm.className = "nm-hover";
+    td.appendChild(nm);
+    tr.appendChild(td);
+
+    // tier
+    td = document.createElement("td");
+    td.className = "num";
+    td.innerHTML = r.tier != null ? '<span class="tier-pill">T' + r.tier + '</span>' : '<span class="muted">-</span>';
+    tr.appendChild(td);
+
+    // qty
+    td = document.createElement("td");
+    td.className = "num";
+    td.innerHTML = r.qty != null ? r.qty.toLocaleString() : '<span class="muted">-</span>';
+    tr.appendChild(td);
+
+    // level
+    td = document.createElement("td");
+    td.className = "num";
+    td.innerHTML = (r.level != null && r.level > 0) ? r.level : '<span class="muted">-</span>';
+    tr.appendChild(td);
+
+    // location tags
+    td = document.createElement("td");
+    const tags = document.createElement("div");
+    tags.className = "tags";
+    r.layers.forEach(l => {
+      const span = document.createElement("span");
+      span.className = "tag " + l;
+      span.textContent = LAYERS[l].label;
+      const n = r.layerCounts ? r.layerCounts[l] : 0;
+      if(n > 1){
+        const c = document.createElement("span");
+        c.className = "ct";
+        c.textContent = "\u00D7" + n;
+        span.appendChild(c);
+      }
+      tags.appendChild(span);
+    });
+    const detail = buildPlaces(r);
+    if(detail){ td.title = detail; td.classList.add("hint-cell"); }
+    td.appendChild(tags);
+    tr.appendChild(td);
+
+    // stacks
+    td = document.createElement("td");
+    td.className = "num";
+    if(r.stacks != null){
+      td.textContent = r.stacks;
+      if(r.sizes && r.sizes.length > 1){ td.title = "Stack sizes: " + r.sizes.join(", "); td.classList.add("hint-cell"); }
+    }
+    else td.innerHTML = '<span class="muted">-</span>';
+    tr.appendChild(td);
+
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+
+  renderStats(rows);
+  $("#empty").classList.toggle("hidden", state.rows.length > 0);
+  $("#sheet").classList.toggle("hidden", state.rows.length === 0);
+}
+
+/* Build the per-bag breakdown shown as the location cell's hover title, ordered by layer. */
+function buildPlaces(r){
+  if(!r.locs) return "";
+  const order = ["personal","bank","shared","vault","equipped","overflow","appearance","mounts","familiars"];
+  const ks = Object.keys(r.locs);
+  ks.sort(function(a,b){ return order.indexOf(r.locs[a].layer) - order.indexOf(r.locs[b].layer); });
+  return ks.map(function(c){
+    const e = r.locs[c], bag = (e.layer === "personal" || e.layer === "bank" || e.layer === "shared");
+    const lbl = bag ? ((LAYERS[e.layer] ? LAYERS[e.layer].label : e.layer) + ": " + c) : c;
+    return lbl + (e.n > 1 ? " \u00D7" + e.n : "");
+  }).join("   /   ");
+}
+
+/* Render the parchment stats strip (distinct items, visible count, quantities, splits, spare bags). */
+function renderStats(visible){
+  const all = state.rows;
+  const distinct = all.length;
+  const totalQty = all.reduce((s,r) => s + (r.qty || 0), 0);
+  const totalStacks = all.reduce((s,r) => s + (r.stacks || 0), 0);
+  const splits = all.filter(r => r.stacks != null && r.stacks > 1).length;
+  // spare containers: items whose name looks like a bag and that occur >1
+  const bagRe = /(backpack|rucksack|satchel|pouch|sack|box|quiver|case|bag|chest)/i;
+  const spare = all.filter(r => bagRe.test(r.name) && r.occ > 1).reduce((s,r) => s + (r.occ - 1), 0);
+  const s = $("#stats");
+  s.innerHTML = "";
+  const cells = [
+    ["Distinct items", distinct],
+    ["Showing", visible.length],
+    ["Total quantity", totalQty ? totalQty.toLocaleString() : "-"],
+    ["Stacks", totalStacks || "-"],
+    ["Split stacks", splits, splits > 0],
+    ["Spare containers", spare, spare > 0]
+  ];
+  cells.forEach(([l,n,flag]) => {
+    const d = document.createElement("div");
+    d.className = "stat" + (flag ? " flag" : "");
+    d.innerHTML = '<span class="n">' + n + '</span><span class="l">' + l + '</span>';
+    s.appendChild(d);
+  });
+}
+
+/* Update the header snapshot line (character, server, which files are loaded). */
+function renderSnapshot(){
+  const a = active();
+  const parts = [];
+  if(a && (a.invName || a.dumpName)){
+    const charM = (a.invName || "").match(/^([A-Za-z]+)_([A-Za-z]+)_Inventory/);
+    if(charM) parts.push("<b>" + charM[2] + "</b> \u00B7 " + charM[1]);
+    const files = [a.invText ? "inventory" : null, a.dumpText ? "dump" : null].filter(Boolean);
+    parts.push(files.join(" + ") + " loaded");
+  }
+  $("#snapshot").innerHTML = parts.length ? parts.join("<br>") : "no manifest loaded";
+}
+
+/* ============ character roster + file loading ============ */
+/* Read a File as text. */
+function readFile(file){
+  return new Promise((res,rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = () => rej(fr.error);
+    fr.readAsText(file);
+  });
+}
+/* Pull server + character from a "<Server>_<Char>_Inventory.txt" filename. */
+function charFromInvName(name){
+  const base = name.replace(/_Inventory\.txt$/i, "");
+  const i = base.indexOf("_");
+  return i < 0 ? {server:"?", char:base} : {server: base.slice(0,i), char: base.slice(i+1)};
+}
+/* Pull a character name from a "<Char>invdump.txt" style dump filename, if present. */
+function charFromDumpName(name){
+  const m = name.replace(/\.txt$/i, "").match(/^(.+?)_?invdump$/i);
+  return m ? m[1] : null;
+}
+/* Pull the server from a scanned folder path (.../logs/<Server>/...). */
+function serverFromPath(file){
+  const p = file.webkitRelativePath || "";
+  const m = p.match(/[\/\\]logs[\/\\]([^\/\\]+)[\/\\]/i);
+  return m ? m[1] : null;
+}
+/* Apply the user's configured dump filename pattern to extract a character name. */
+function charFromPattern(name){
+  const pat = (cfg && cfg.dumpPattern) || "";
+  if(pat.indexOf("<Char>") < 0) return null;
+  const parts = pat.split("<Char>").map(function(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); });
+  try{ const m = name.match(new RegExp("^" + parts.join("(.+?)") + "$", "i")); return m ? m[1] : null; }
+  catch(e){ return null; }
+}
+/* Roster key for a server+character pair (unit-separator joined). */
+function keyFor(server, char){ return server + "\u241F" + char; }
+
+/* After any load, pick the active character (preferring preferredKey if given), refresh the
+   switcher, and activate. Shared by addFiles, loadDefaults, pasteLoad, and character removal. */
+function finishLoad(preferredKey){
+  if(preferredKey && state.roster[preferredKey]){
+    state.activeKey = preferredKey;
+  } else {
+    const loaded = Object.keys(state.roster).filter(k => state.roster[k].invText);
+    if(loaded.length && (!state.activeKey || !state.roster[state.activeKey] || !state.roster[state.activeKey].invText)){
+      state.activeKey = loaded[0];
+    }
+  }
+  populateSwitcher();
+  setActive(state.activeKey);
+}
+
+/* Ingest dropped/picked files: route each to a roster entry as inventory or dump, then finish. */
+async function addFiles(fileArr){
+  const invs = [], dumps = [];
+  for(const f of fileArr){
+    if(/_Inventory\.txt$/i.test(f.name)) invs.push(f);
+    else if(/dump/i.test(f.name)) dumps.push(f);
+  }
+  for(const f of invs){
+    const txt = await readFile(f);
+    if(detect(txt) !== "inv") continue;
+    const {server,char} = charFromInvName(f.name);
+    const k = keyFor(server, char);
+    const e = state.roster[k] || (state.roster[k] = {server, char});
+    e.invText = txt; e.invName = f.name; e.invMod = f.lastModified;
+  }
+  for(const f of dumps){
+    const txt = await readFile(f);
+    if(detect(txt) !== "dump") continue;
+    let assigned = false;
+    // 1. match by character name (from pattern or filename)
+    const dchar = charFromPattern(f.name) || charFromDumpName(f.name);
+    if(dchar){
+      for(const k in state.roster){
+        if((state.roster[k].char || "").toLowerCase() === dchar.toLowerCase()){
+          state.roster[k].dumpText = txt; state.roster[k].dumpName = f.name; state.roster[k].dumpMod = f.lastModified;
+          assigned = true;
+        }
+      }
+    }
+    // 2. otherwise match by server (from path) and closest timestamp
+    if(!assigned){
+      const srv = serverFromPath(f);
+      const cands = Object.keys(state.roster).filter(k => state.roster[k].invText && (srv ? (state.roster[k].server || "").toLowerCase() === srv.toLowerCase() : true));
+      let tgt = null;
+      if(cands.length === 1){ tgt = cands[0]; }
+      else if(cands.length > 1){
+        if(f.lastModified){
+          let best = Infinity;
+          for(const k of cands){
+            const im = state.roster[k].invMod;
+            if(im && Math.abs(im - f.lastModified) < best){ best = Math.abs(im - f.lastModified); tgt = k; }
+          }
+        }
+        if(!tgt){ tgt = (state.activeKey && cands.indexOf(state.activeKey) >= 0) ? state.activeKey : cands[cands.length - 1]; }
+      }
+      if(tgt){ state.roster[tgt].dumpText = txt; state.roster[tgt].dumpName = f.name; state.roster[tgt].dumpMod = f.lastModified; assigned = true; }
+    }
+    // 3. last resort: attach to the active or most recent character
+    if(!assigned){
+      const keys = Object.keys(state.roster);
+      const tgt = (state.activeKey && state.roster[state.activeKey]) ? state.activeKey : keys[keys.length - 1];
+      if(tgt){ state.roster[tgt].dumpText = txt; state.roster[tgt].dumpName = f.name; state.roster[tgt].dumpMod = f.lastModified; }
+    }
+  }
+  finishLoad();
+}
+
+/* Activate a character: rebuild rows and every dependent view, persist, then probe tooltips. */
+function setActive(key){
+  state.activeKey = key;
+  build();
+  renderChips();
+  render();
+  renderSnapshot();
+  updateWarnbar();
+  refreshModal();
+  save();
+  if(state.icons) discoverAll(state.rows.map(r => r.name));
+}
+
+/* Compute a character's freshness status for the badge / warning bar. */
+function charStatus(e){
+  if(!e.invText) return {lvl:"bad", msg:"No data; export then load"};
+  if(!e.dumpText) return {lvl:"warn", msg:"No dump; run Export, then reload"};
+  if(e.invMod && e.dumpMod && e.dumpMod < e.invMod - 60000) return {lvl:"warn", msg:"Dump older than inventory; re-export, then Scan folder again"};
+  const newest = Math.max(e.invMod || 0, e.dumpMod || 0);
+  if(newest && cfg.staleHours > 0 && (Date.now() - newest) > cfg.staleHours * 3600000){
+    return {lvl:"warn", msg:"Data is " + fmtAge((Date.now() - newest) / 3600000) + " old; re-export when convenient"};
+  }
+  return {lvl:"ok", msg:"Fresh"};
+}
+/* Format an age in hours as a short label. */
+function fmtAge(h){ if(h < 1) return "<1h"; if(h < 48) return Math.round(h) + "h"; return Math.round(h / 24) + "d"; }
+
+/* Render the Characters watch-list panel, with per-character status and a remove button. */
+function renderChars(){
+  const list = $("#charsList");
+  list.innerHTML = "";
+  const keys = Object.keys(state.roster);
+  if(!keys.length){ list.innerHTML = '<div class="chars-head">None yet. Load files, scan a folder, or add a name below to watch for it.</div>'; return; }
+  keys.forEach(k => {
+    const e = state.roster[k], st = charStatus(e);
+    const row = document.createElement("div");
+    row.className = "char-row";
+    row.innerHTML = '<span class="nm">' + e.char + '</span><span class="sv">' + ((e.server && e.server !== "?") ? e.server : "") + '</span>' +
+      '<span class="badge ' + st.lvl + '">' + st.msg + '</span>';
+    const x = document.createElement("button");
+    x.className = "x";
+    x.textContent = "\u00D7";
+    x.title = "Remove";
+    x.onclick = () => {
+      delete state.roster[k];
+      if(state.activeKey === k){
+        const l = Object.keys(state.roster).filter(z => state.roster[z].invText);
+        state.activeKey = l[0] || null;
+      }
+      finishLoad(state.activeKey);
+    };
+    row.appendChild(x);
+    list.appendChild(row);
+  });
+}
+
+/* Show or hide the warning bar for the active character. */
+function updateWarnbar(){
+  const wb = $("#warnbar");
+  const e = state.activeKey && state.roster[state.activeKey];
+  if(e){
+    const st = charStatus(e);
+    if(st.lvl !== "ok"){ wb.textContent = "\u26A0 " + e.char + ": " + st.msg; wb.className = "warnbar " + st.lvl; return; }
+  }
+  wb.className = "warnbar hidden";
+  wb.textContent = "";
+}
+
+/* Rebuild the character switcher dropdown (only characters with inventory appear). */
+function populateSwitcher(){
+  const sel = $("#charSwitch");
+  const keys = Object.keys(state.roster).filter(k => state.roster[k].invText);
+  sel.innerHTML = "";
+  keys.forEach(k => {
+    const e = state.roster[k], st = charStatus(e);
+    const o = document.createElement("option");
+    o.value = k;
+    o.textContent = (st.lvl !== "ok" ? "\u26A0 " : "") + e.char + (e.server && e.server !== "?" ? " \u00B7 " + e.server : "");
+    if(k === state.activeKey) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.classList.toggle("hidden", keys.length < 1);
+  renderChars();
+}
+
+/* ============ toolbar + panel wiring ============ */
+$("#loadBtn").onclick = () => $("#filein").click();
+$("#filein").onchange = async e => { await addFiles([...e.target.files]); e.target.value = ""; };
+$("#scanBtn").onclick = () => $("#dirin").click();
+$("#dirin").onchange = async e => {
+  const matched = [...e.target.files].filter(f => /_Inventory\.txt$/i.test(f.name) || /dump/i.test(f.name));
+  if(!matched.length){ alert("No inventory or dump files found in that folder. Point me at your EverQuest2 folder."); e.target.value = ""; return; }
+  await addFiles(matched);
+  e.target.value = "";
+};
+$("#charSwitch").onchange = e => setActive(e.target.value);
+$("#charsBtn").onclick = () => { renderChars(); $("#charsWrap").classList.toggle("open"); };
+
+/* Fetch watch-list characters' files by their known path. Only works when a copy of this app
+   sits in the EverQuest 2 folder and is opened in a normal browser (the in-game browser blocks it). */
+async function loadDefaults(silent){
+  const entries = Object.values(state.roster).filter(e => e.char && e.server && e.server !== "?");
+  if(!entries.length){
+    if(!silent) alert("Add at least one character with its server to the watch list first (Characters button), then Load defaults.");
+    return;
+  }
+  let ok = 0;
+  for(const e of entries){
+    try{
+      const r = await fetch("./" + e.server + "_" + e.char + "_Inventory.txt");
+      if(r.ok){ const t = await r.text(); if(detect(t) === "inv"){ e.invText = t; e.invName = e.server + "_" + e.char + "_Inventory.txt"; ok++; } }
+    }catch(err){}
+    const _pn = (cfg.dumpPattern && cfg.dumpPattern.indexOf("<Char>") >= 0) ? cfg.dumpPattern.replace("<Char>", e.char) : null;
+    for(const dn of [_pn, e.char + "invdump.txt", e.char + "_invdump.txt", "invdump.txt"].filter(Boolean)){
+      try{
+        const r = await fetch("./logs/" + e.server + "/" + dn);
+        if(r.ok){ const t = await r.text(); if(detect(t) === "dump"){ e.dumpText = t; e.dumpName = dn; break; } }
+      }catch(err){}
+    }
+  }
+  if(ok === 0 && !silent){
+    alert("Couldn\u2019t read any files by path. Auto-load only works when a COPY of this app sits directly in your EverQuest2 folder AND you open it in your normal browser (Chrome/Firefox). The in-game browser blocks local file reads. Otherwise use Scan folder.");
+  }
+  finishLoad();
+}
+$("#defBtn").onclick = () => loadDefaults(false);
+
+/* Add a character (and optional server) to the watch list. */
+$("#addCharBtn").onclick = () => {
+  const c = $("#addChar").value.trim();
+  if(!c) return;
+  const sv = $("#addServer").value.trim() || "?";
+  const k = keyFor(sv, c);
+  if(!state.roster[k]) state.roster[k] = {server:sv, char:c};
+  $("#addChar").value = "";
+  $("#addServer").value = "";
+  renderChars();
+  populateSwitcher();
+  save();
+};
+
+$("#pasteToggle").onclick = () => $("#pasteWrap").classList.toggle("open");
+/* Load inventory/dump text pasted directly into the textareas. */
+$("#pasteLoad").onclick = () => {
+  const inv = $("#pasteInv").value.trim(), dump = $("#pasteDump").value.trim();
+  const k = keyFor("?", "Pasted");
+  const e = state.roster[k] || (state.roster[k] = {server:"?", char:"Pasted"});
+  if(inv){ e.invText = inv; e.invName = "pasted_Inventory.txt"; }
+  if(dump){ e.dumpText = dump; e.dumpName = "pasted_dump.txt"; }
+  finishLoad(k);
+  $("#pasteWrap").classList.remove("open");
+};
+
+$("#iconToggle").onchange = e => { state.icons = e.target.checked; render(); save(); if(state.icons) discoverAll(state.rows.map(r => r.name)); };
+$("#search").oninput = e => { state.search = e.target.value; render(); save(); };
+$("#clearBtn").onclick = () => { state.search = ""; $("#search").value = ""; state.locFilter.clear(); state.tierFilter.clear(); renderChips(); render(); save(); };
+
+/* ============ settings panel + first-load modal ============ */
+let toastT = null;
+/* Brief transient message at the bottom of the screen. */
+function toast(msg){
+  let t = $("#toast");
+  if(!t){ t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+}
+/* Push current settings into the settings-panel inputs and refresh the environment line. */
+function applyCfgInputs(){
+  const a = $("#cfgAutoDef"); if(a) a.checked = !!cfg.autoDefaults;
+  const d = $("#cfgDumpPat"); if(d) d.value = cfg.dumpPattern || "";
+  const s = $("#cfgStale"); if(s) s.value = cfg.staleHours;
+  const t = $("#cfgTipsDef"); if(t) t.checked = !!cfg.tooltipsDefault;
+  const env = $("#setEnv");
+  if(env) env.innerHTML = "Environment: <b>" + envLabel + "</b>. " + (isInGame
+    ? "Local files can\u2019t be read here, so Auto-load and Load defaults won\u2019t work; use Load files, Scan folder, or Paste."
+    : "Load defaults works if this copy sits in your EverQuest 2 folder.");
+}
+$("#settingsBtn").onclick = function(){ applyCfgInputs(); $("#settingsWrap").classList.toggle("open"); };
+$("#cfgAutoDef").onchange = function(e){ cfg.autoDefaults = e.target.checked; saveCfg(); };
+$("#cfgDumpPat").onchange = function(e){ cfg.dumpPattern = e.target.value.trim(); saveCfg(); };
+$("#cfgStale").onchange = function(e){ let v = parseInt(e.target.value, 10); if(isNaN(v) || v < 0) v = 0; cfg.staleHours = v; e.target.value = v; saveCfg(); populateSwitcher(); updateWarnbar(); };
+$("#cfgTipsDef").onchange = function(e){ cfg.tooltipsDefault = e.target.checked; saveCfg(); };
+$("#cfgGuide").onclick = function(){ $("#settingsWrap").classList.remove("open"); openModal(); };
+/* Copy settings JSON to the clipboard (prompt fallback). */
+$("#cfgExport").onclick = function(){
+  const txt = JSON.stringify(cfg);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ toast("Settings copied."); }, function(){ window.prompt("Copy your settings:", txt); });
+  }
+  else window.prompt("Copy your settings:", txt);
+};
+/* Import settings JSON pasted by the user. */
+$("#cfgImport").onclick = function(){
+  const txt = window.prompt("Paste settings JSON:");
+  if(!txt) return;
+  try{ const j = JSON.parse(txt); cfg = Object.assign({}, CFG_DEFAULTS, cfg, j); saveCfg(); applyCfgInputs(); populateSwitcher(); updateWarnbar(); toast("Settings applied."); }
+  catch(e){ alert("That doesn\u2019t look like valid settings JSON."); }
+};
+/* Wipe all stored data after confirmation. */
+$("#cfgReset").onclick = function(){
+  if(!window.confirm("Reset everything? This clears loaded inventory, settings, the watch list, and cached tooltips. It can\u2019t be undone.")) return;
+  try{ localStorage.removeItem("mulestation"); localStorage.removeItem("mulestation_config"); localStorage.removeItem("mulestation_icons"); }catch(e){}
+  location.reload();
+};
+
+/* True when no character has inventory loaded (so the first-load modal should show). */
+function modalNeeded(){ return !Object.keys(state.roster).some(function(k){ return state.roster[k].invText; }); }
+/* Toggle a modal step's done state. */
+function setCheck(id, on){ const li = document.getElementById(id); if(li) li.classList.toggle("done", !!on); }
+/* Hide the first-load modal. */
+function closeModal(){ const m = $("#loadModal"); if(m) m.classList.add("hidden"); }
+/* Show the first-load modal, wiring the environment-appropriate action buttons. */
+function openModal(){
+  const m = $("#loadModal");
+  if(!m) return;
+  m.classList.remove("hidden");
+  $("#modalEnv").innerHTML = "<b>" + envLabel + ".</b> " + (isInGame
+    ? "The in-game browser can\u2019t auto-read files; pick them yourself with Load files, or Scan folder (point at your EverQuest 2 folder). Paste also works."
+    : "If a copy of this app sits in your EverQuest 2 folder, Load defaults pulls everything by path. Otherwise use Load files or Scan folder.");
+  const acts = $("#modalActions");
+  acts.innerHTML = "";
+  function mk(label, fn, ghost){
+    const b = document.createElement("button");
+    b.className = "btn" + (ghost ? " ghost" : "");
+    b.textContent = label;
+    b.onclick = fn;
+    acts.appendChild(b);
+  }
+  if(!isInGame) mk("Load defaults", function(){ loadDefaults(false); });
+  mk("Load files", function(){ $("#filein").click(); });
+  mk("Scan folder", function(){ $("#dirin").click(); }, true);
+  mk("Paste instead", function(){ closeModal(); $("#pasteWrap").classList.add("open"); }, true);
+  $("#modalNote").innerHTML = "Files live in your EverQuest 2 folder: <code>&lt;Server&gt;_&lt;Char&gt;_Inventory.txt</code> at the root, dumps under <code>\\logs\\&lt;Server&gt;\\</code>. Run <b>Export Snapshot</b> in MuleStation first if you haven\u2019t.";
+  refreshModal();
+}
+/* Update the modal's progress checks and per-file subtitles from current load state. */
+function refreshModal(){
+  const m = $("#loadModal");
+  if(!m || m.classList.contains("hidden")) return;
+  const invKeys = Object.keys(state.roster).filter(function(k){ return state.roster[k].invText; });
+  const dumpKeys = Object.keys(state.roster).filter(function(k){ return state.roster[k].dumpText; });
+  const hasInv = invKeys.length > 0, hasDump = dumpKeys.length > 0;
+  setCheck("st-export", hasInv);
+  setCheck("st-inv", hasInv);
+  setCheck("st-dump", hasDump);
+  $("#sub-inv").textContent = hasInv
+    ? (invKeys.map(function(k){ return state.roster[k].char; }).join(", ") + " \u00B7 inventory loaded")
+    : "Not loaded yet. This is the location data (bags, bank, equipped).";
+  $("#sub-dump").textContent = hasDump
+    ? (dumpKeys.map(function(k){ return state.roster[k].char; }).join(", ") + " \u00B7 tier & quantity loaded")
+    : "Not loaded. Optional, but adds the tier and quantity columns.";
+  const succ = $("#modalSuccess");
+  if(hasInv){
+    succ.classList.remove("hidden");
+    succ.textContent = "\u2713 " + invKeys.length + " character" + (invKeys.length > 1 ? "s" : "") + " ready; close this to view the manifest.";
+  }
+  else succ.classList.add("hidden");
+}
+$("#modalX").onclick = closeModal;
+$("#loadModal").addEventListener("click", function(e){ if(e.target.id === "loadModal") closeModal(); });
+
+/* ============ persistence (localStorage; confirmed working in CEF 91) ============ */
+/* Save UI state and the roster to storage. */
+function save(){
+  try{
+    localStorage.setItem("mulestation", JSON.stringify({
+      roster: state.roster, activeKey: state.activeKey,
+      sortKey: state.sortKey, sortAsc: state.sortAsc, search: state.search, icons: state.icons,
+      loc: [...state.locFilter], tier: [...state.tierFilter]
+    }));
+  }catch(e){}
+}
+/* Restore saved state; returns true if a roster was loaded. */
+function load(){
+  try{
+    const j = JSON.parse(localStorage.getItem("mulestation") || "null");
+    if(!j) return false;
+    state.roster = j.roster || {};
+    state.activeKey = j.activeKey || null;
+    state.sortKey = j.sortKey || "name";
+    state.sortAsc = j.sortAsc !== false;
+    state.search = j.search || "";
+    $("#search").value = state.search;
+    state.icons = !!j.icons;
+    $("#iconToggle").checked = state.icons;
+    state.locFilter = new Set(j.loc || []);
+    state.tierFilter = new Set(j.tier || []);
+    return Object.keys(state.roster).length > 0;
+  }catch(e){ return false; }
+}
+
+/* ============ boot ============ */
+loadIconCache();
+loadCfg();
+applyCfgInputs();
+document.getElementById("iconPopImg").onerror = function(){ document.getElementById("iconPop").classList.add("hidden"); };
+
+const _had = load();
+if(!_had){ state.icons = cfg.tooltipsDefault; $("#iconToggle").checked = state.icons; }
+if(_had){
+  // restore the saved active character (or fall back to the first roster entry)
+  const keys = Object.keys(state.roster);
+  if(!state.activeKey || !state.roster[state.activeKey]) state.activeKey = keys[0] || null;
+  populateSwitcher();
+  setActive(state.activeKey);
+  renderChars();
+} else {
+  render();
+  renderChars();
+}
+(async function(){
+  if(cfg.autoDefaults && !isInGame && Object.values(state.roster).some(function(e){ return e.char && e.server && e.server !== "?"; })){
+    try{ await loadDefaults(true); }catch(e){}
+  }
+  if(modalNeeded()) openModal();
+})();
+</script>
+</body>
+</html>

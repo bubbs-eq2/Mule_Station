@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Page IgnoreTab="false" ismodule="true" Name="Custom" PackSize="1,1" ScrollExtent="1024,768" Size="1024,768" Visible="false">
+  <include>custom_mulestation.xml</include>
+  <include>custom_bagmat.xml</include>
+</Page>

@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- MuleStation shared tradeskill bag override (adds the corner resize nub). -->
+<!-- KEEP THE RESIZE NUB AND STYLING IN SYNC with eq2ui_inventory_bag.xml; -->
+<!-- the two files are intentionally near-identical (only the window Name and label differ). -->
+        <Page eq2opensound="ui_window_inventory_open" eq2usescomwndcontrols="true" Location="64,128" MaximumSize="2048,2048" MinimumSize="60,77" Name="SharedTradeskillBag" PackLocation="left,bottom" ScrollExtent="270,122" Size="270,122" UserMovable="true" UserResizable="true" version="2.1" version_note="Adds a corner resize nub to the default bag window.">
+            <Button Location="116,2" MaximumSize="16384,26" MinimumSize="26,26" Name="BagOptions" PackLocation="right,top" PackSize="fixed,fixed" ScrollExtent="30,26" Size="30,26" Style="/CommonElements.SmallPushButton.data.style" Tooltip=":9400dd4367e9132d:Bag Options" />
+            <IconBank BackgroundOpacity="1.000" Dragable="true" font="/TextStyles.Normal.NormalStyle" framecolor="#B5935A" iconframepadding="0" iconpadding="1" iconsize="42" iconstyle="/IconStyles.examine" Location="6,28" Name="Icons" PackSize="a,a" renderframe="true" renderoutlines="false" ScrollExtent="172,44" Size="172,44" textcolor="#FFFFFF" textmargin="2,-1,2,-2" treatasbutton="false" />
+            <Text Enabled="false" Visible="false" Font="/TextStyles.Large.LargeStyle" Location="6,4" Margin="2,0,0,0" MaxLines="1" Name="Name" PackLocation="cfc,top" PackSize="absolute,fixed" ScrollExtent="120,22" Size="120,22" TextAlignmentVertical="Center" TextColor="#FBF1D9" Tooltip=":f4ce1968dc90d15e_1:Bag">:x:Shared Tradeskill Bag</Text>
+            <Page AbsorbsInput="false" Name="WindowFrame" PackSize="absolute,absolute" ScrollExtent="184,77" Size="184,77">
+                <Button Location="143,7" Name="Settings" PackLocation="right,top" ScrollExtent="18,18" Size="18,18" Style="/WindowElements.WindowFrame.data.settings.style" Tooltip=":f4ce1968ec278586:Window Settings" UserMovable="true" />
+                <Button Location="160,7" Name="Close" PackLocation="right,top" ScrollExtent="18,18" Size="18,18" Style="/WindowElements.WindowFrame.data.close.style" Tooltip=":f4ce19682d3f513f:Close" UserMovable="true" />
+                <Page AbsorbsInput="false" Location="14,0" Name="RightGrouper" PackLocation="right,top" ScrollExtent="170,70" Size="170,70" Visible="false" />
+                <Page AbsorbsInput="false" Name="LeftGrouper" ScrollExtent="195,70" Size="195,70" Visible="false">
+                    <Text AbsorbsInput="false" Font="/Fonts.FontZapf15" Location="30,3" MaxLines="1" Name="Title" PackSize="absolute,fixed" ScrollExtent="65,20" ShadowStyle="/ShadowStylesNew.Outline.style" Size="65,20" TextAlignment="Center" TextAlignmentVertical="Center" TextColor="#F0D080" Visible="false" />
+                </Page>
+                <Page AbsorbsInput="false" BackgroundOpacity="1.000" Location="-2,-3" Name="Frame" PackLocation="left,top" PackSize="absolute,absolute" Visible="false" RStyleDefault="/WindowElements.DesktopWindowFrame.data.frame.rect" ScrollExtent="187,82" Size="187,82" />
+                <Page AbsorbsInput="false" BackgroundOpacity="1.000" Location="2,2" Name="Bkg" PackLocation="left,top" PackSize="absolute,absolute" Visible="false" ScrollExtent="179,74" Size="179,74" />
+            </Page>
+                <Page Name="ResizeNub" AbsorbsInput="false" BackgroundOpacity="1.000" PackLocation="right,bottom" PackSize="absolute,absolute" RStyleDefault="/WindowElements.DesktopWindowFrame.data.frame.rect" Color="#C9A24A" Location="252,104" ScrollExtent="11,11" Size="11,11" Tooltip="Drag this corner to resize" />
+        </Page>

@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Bag Mat v3: transparent boxes (frame-only rstyle) + bright colored labels. -->
+<!-- 3 big zones on top, 3 smaller zones below. Boxes are click-through. -->
+<!-- See-through by design; grab the title bar to move, X to close. -->
+<!-- Summon: /show_window Custom.BagMat   UTF-8 + BOM + CRLF required. -->
+<!-- SHARED PALETTE: zone colours match the web app CSS (:root in index.html) and -->
+<!-- the MuleStation panel (custom_mulestation.xml). Recolour in all three places. -->
+<Page Name="BagMat"
+      Activated="true" eq2usescomwndcontrols="true" BackgroundOpacity="1.000"
+      Location="160,150" MaximumSize="2560,1440" MinimumSize="300,200"
+      ScrollExtent="2200,716" Size="2200,716" UserMovable="true" UserResizable="true">
+
+    <!-- title bar (grab handle + close) -->
+    <Page Name="titlebar" BackgroundOpacity="1.000" Location="0,0"
+        RStyleDefault="/rectlist.win_plain" ScrollExtent="2200,24" Size="2200,24">
+        <Text Name="Title" AbsorbsInput="false" Font="/Fonts.FontZapf15"
+              ShadowStyle="/ShadowStylesNew.Outline.style" Location="12,3"
+              Size="300,18" ScrollExtent="300,18" TextColor="#F0D080">Bag Mat</Text>
+        <Button Name="Close" Location="2178,3" Size="18,18" ScrollExtent="18,18"
+                Style="/WindowElements.WindowFrame.data.close.style" Tooltip="Close"
+                OnPress="Parent.Parent.Visible=false" />
+    </Page>
+
+        <Page Name="B_Personal" AbsorbsInput="false" BackgroundOpacity="1.000"
+            RStyleDefault="/WindowElements.DesktopWindowFrame.data.frame.rect" Color="#9ED8C6"
+            Location="10,30" Size="720,496" ScrollExtent="720,496" />
+        <Text Name="B_PersonalLbl" AbsorbsInput="false" Font="/Fonts.FontZapf15"
+            ShadowStyle="/ShadowStylesNew.Outline.style" TextAlignment="Center"
+            Location="10,35" Size="720,22" ScrollExtent="720,22" TextColor="#9ED8C6">Personal</Text>
+        <Page Name="B_PersonalBank" AbsorbsInput="false" BackgroundOpacity="1.000"
+            RStyleDefault="/WindowElements.DesktopWindowFrame.data.frame.rect" Color="#C9B6E8"
+            Location="742,30" Size="720,496" ScrollExtent="720,496" />
+        <Text Name="B_PersonalBankLbl" AbsorbsInput="false" Font="/Fonts.FontZapf15"
+            ShadowStyle="/ShadowStylesNew.Outline.style" TextAlignment="Center"
+            Location="742,35" Size="720,22" ScrollExtent="720,22" TextColor="#C9B6E8">Personal Bank</Text>
+        <Page Name="B_SharedBank" AbsorbsInput="false" BackgroundOpacity="1.000"
+            RStyleDefault="/WindowElements.DesktopWindowFrame.data.frame.rect" Color="#E8C49A"
+            Location="1474,30" Size="720,496" ScrollExtent="720,496" />
+        <Text Name="B_SharedBankLbl" AbsorbsInput="false" Font="/Fonts.FontZapf15"
+            ShadowStyle="/ShadowStylesNew.Outline.style" TextAlignment="Center"
+            Location="1474,35" Size="720,22" ScrollExtent="720,22" TextColor="#E8C49A">Shared Bank</Text>
+        <Page Name="S_SharedTradeskill" AbsorbsInput="false" BackgroundOpacity="1.000"
+            RStyleDefault="/WindowElements.DesktopWindowFrame.data.frame.rect" Color="#AEDDA0"
+            Location="10,534" Size="460,170" ScrollExtent="460,170" />
+        <Text Name="S_SharedTradeskillLbl" AbsorbsInput="false" Font="/Fonts.FontZapf15"
+            ShadowStyle="/ShadowStylesNew.Outline.style" TextAlignment="Center"
+            Location="10,539" Size="460,22" ScrollExtent="460,22" TextColor="#AEDDA0">Shared Tradeskill</Text>
+        <Page Name="S_Overseer" AbsorbsInput="false" BackgroundOpacity="1.000"
+            RStyleDefault="/WindowElements.DesktopWindowFrame.data.frame.rect" Color="#A6C4E8"
+            Location="482,534" Size="460,170" ScrollExtent="460,170" />
+        <Text Name="S_OverseerLbl" AbsorbsInput="false" Font="/Fonts.FontZapf15"
+            ShadowStyle="/ShadowStylesNew.Outline.style" TextAlignment="Center"
+            Location="482,539" Size="460,22" ScrollExtent="460,22" TextColor="#A6C4E8">Overseer</Text>
+        <Page Name="S_Vault" AbsorbsInput="false" BackgroundOpacity="1.000"
+            RStyleDefault="/WindowElements.DesktopWindowFrame.data.frame.rect" Color="#E8B0B6"
+            Location="954,534" Size="460,170" ScrollExtent="460,170" />
+        <Text Name="S_VaultLbl" AbsorbsInput="false" Font="/Fonts.FontZapf15"
+            ShadowStyle="/ShadowStylesNew.Outline.style" TextAlignment="Center"
+            Location="954,539" Size="460,22" ScrollExtent="460,22" TextColor="#E8B0B6">Vault</Text>
+</Page>

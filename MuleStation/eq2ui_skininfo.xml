@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+    <Page Name="SkinInfoPage" ScrollExtent="800,600" Size="800,600" Visible="false">
+        <Data author="Bubbs" contact="Bubbs (eq2interface.com)" description="Inventory management UI: custom panel, transparent Bag Mat backdrop, skinned bag windows with a resize nub, and an offline manifest web app." Name="SkinInfo" text=":f:MuleStation" version="1.0 (June 2026)"/>
+    </Page>

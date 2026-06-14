@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Mule Station - cleanup build. UTF-8 + BOM + CRLF required. -->
+<!-- Summon: /show_window Custom.MuleStation -->
+<!-- WEB APP zone: Export (writes BOTH data files) + two browser launchers. -->
+<!-- URLs in OnShow MUST be single-quoted (literal); spaces are %20. -->
+<Page Name="MuleStation"
+      Activated="true" eq2usescomwndcontrols="true" BackgroundOpacity="1.000"
+      Location="80,1170" MaximumSize="1400,400" MinimumSize="200,80"
+      ScrollExtent="620,96" Size="620,96" UserMovable="true" UserResizable="true">
+
+    <Page Name="CmdToggle"   Visible="false" OnShow="
+        togglebags
+        Visible=false" />
+    <Page Name="CmdBankBags" Visible="false" OnShow="
+        togglebankbags
+        Visible=false" />
+    <Page Name="CmdHouse"    Visible="false" OnShow="
+        togglehouseinventory
+        Visible=false" />
+    <Page Name="CmdBagMat"   Visible="false" OnShow="
+        show_window Custom.BagMat
+        Visible=false" />
+    <!-- Combined snapshot: location file THEN tier/qty log, then re-hide. -->
+    <Page Name="CmdExport"   Visible="false" OnShow="
+        output_inventory_to_file
+        log invdump
+        dump_items_to_log
+        log
+        Visible=false" />
+    <Page Name="CmdFind"     Visible="false" OnShow="
+        finditem
+        Visible=false" />
+    <!-- Manager launchers: open the bundled web app (UI/MuleStation/index.html) -->
+    <!-- in your system browser (Manager) or the in-game browser (In-Game).      -->
+    <!-- ============================================================================ -->
+    <!-- EDIT THIS PATH to match YOUR install (first-run setup step). EQ2 file://     -->
+    <!-- requires an ABSOLUTE path, so it cannot be made relative. Point BOTH          -->
+    <!-- CmdMgrExt and CmdMgrInt below at this skin's index.html. Spaces must be %20.  -->
+    <!-- Keep the SINGLE QUOTES around the URL (literal arg; see the header note).      -->
+    <!--                                                                                -->
+    <!-- Common locations (replace the line in both OnShow handlers with the match):    -->
+    <!--   Steam:    file:///C:/Program%20Files%20(x86)/Steam/steamapps/common/EverQuest%202/UI/MuleStation/index.html -->
+    <!--   Daybreak: file:///C:/Users/Public/Daybreak%20Game%20Company/Installed%20Games/EverQuest%20II/UI/MuleStation/index.html -->
+    <!--   DBG x86:  file:///C:/Program%20Files%20(x86)/Daybreak%20Game%20Company/Installed%20Games/EverQuest%20II/UI/MuleStation/index.html -->
+    <!-- ============================================================================ -->
+    <Page Name="CmdMgrExt"   Visible="false" OnShow="
+        browserexternal 'file:///C:/Program%20Files%20(x86)/Steam/steamapps/common/EverQuest%202/UI/MuleStation/index.html'
+        Visible=false" />
+    <Page Name="CmdMgrInt"   Visible="false" OnShow="
+        browser 'file:///C:/Program%20Files%20(x86)/Steam/steamapps/common/EverQuest%202/UI/MuleStation/index.html'
+        Visible=false" />
+
+    <Page Name="frame" BackgroundOpacity="1.000" Location="1,1"
+        PackLocation="top,left" PackSize="absolute,absolute"
+        RStyleDefault="/rectlist.win_plain" ScrollExtent="620,96" Size="620,96">
+
+        <!-- SHARED PALETTE: zone colours below (teal/purple/amber, gold title) match -->
+        <!-- the web app CSS (:root in index.html) and custom_bagmat.xml. If you       -->
+        <!-- recolour, change all three places; they cannot share one source.          -->
+        <Text Name="Title" AbsorbsInput="false" Font="/Fonts.FontZapf15"
+              ShadowStyle="/ShadowStylesNew.Outline.style" Location="12,4"
+              Size="240,18" ScrollExtent="240,18" TextAlignmentVertical="Center"
+              TextColor="#F0D080">Mule Station</Text>
+
+        <!-- OPEN (teal) -->
+        <Text Name="LblOpen" AbsorbsInput="false" Font="/TextStyles.Large.LargeStyle"
+              Location="14,24" Size="200,15" ScrollExtent="200,15" TextColor="#9ED8C6">OPEN</Text>
+        <Button Name="O_Toggle" Location="14,42"  Size="100,22" Text="Toggle Bags"
+                Style="/CommonElements.SmallPushButton.data.style"
+                OnPress="Parent.Parent.CmdToggle.Visible=true" Tooltip="Open / close all personal bags" />
+        <Button Name="O_Bank"   Location="118,42" Size="100,22" Text="Bank Bags"
+                Style="/CommonElements.SmallPushButton.data.style"
+                OnPress="Parent.Parent.CmdBankBags.Visible=true" Tooltip="Toggle all bank bags" />
+        <Button Name="O_House"  Location="14,66"  Size="100,22" Text="House Vault"
+                Style="/CommonElements.SmallPushButton.data.style"
+                OnPress="Parent.Parent.CmdHouse.Visible=true" Tooltip="Toggle house vault" />
+        <Button Name="O_BagMat" Location="118,66" Size="100,22" Text="Bag Mat"
+                Style="/CommonElements.SmallPushButton.data.style"
+                OnPress="Parent.Parent.CmdBagMat.Visible=true" Tooltip="Open the colored bag-staging backdrop" />
+
+        <!-- WEB APP (purple) -->
+        <Text Name="LblWeb" AbsorbsInput="false" Font="/TextStyles.Large.LargeStyle"
+              Location="240,24" Size="200,15" ScrollExtent="200,15" TextColor="#C9B6E8">WEB APP</Text>
+        <Button Name="W_Export" Location="240,42" Size="204,22" Text="Export Snapshot"
+                Style="/CommonElements.SmallPushButton.data.style"
+                OnPress="Parent.Parent.CmdExport.Visible=true" Tooltip="Write inventory file (location) AND log dump (tier/qty)" />
+        <Button Name="W_MgrExt" Location="240,66" Size="100,22" Text="Manager"
+                Style="/CommonElements.SmallPushButton.data.style"
+                OnPress="Parent.Parent.CmdMgrExt.Visible=true" Tooltip="Open the app in your system browser" />
+        <Button Name="W_MgrInt" Location="344,66" Size="100,22" Text="In-Game"
+                Style="/CommonElements.SmallPushButton.data.style"
+                OnPress="Parent.Parent.CmdMgrInt.Visible=true" Tooltip="Open the app in the in-game browser" />
+
+        <!-- FIND (amber) -->
+        <Text Name="LblFind" AbsorbsInput="false" Font="/TextStyles.Large.LargeStyle"
+              Location="466,24" Size="150,15" ScrollExtent="150,15" TextColor="#E8C49A">FIND</Text>
+        <Button Name="F_Find"  Location="466,42" Size="140,22" Text="Find Item"
+                Style="/CommonElements.SmallPushButton.data.style"
+                OnPress="Parent.Parent.CmdFind.Visible=true" Tooltip="Search ALL inventory" />
+        <Text Name="HintFind" AbsorbsInput="false" Font="/TextStyles.Large.LargeStyle"
+              Location="466,68" Size="150,15" ScrollExtent="150,15" TextColor="#8FA0A0">bank and vault too</Text>
+    </Page>
+</Page>
