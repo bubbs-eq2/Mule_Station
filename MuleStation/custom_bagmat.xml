@@ -6,9 +6,9 @@
 <!-- SHARED PALETTE: zone colours match the web app CSS (:root in index.html) and -->
 <!-- the MuleStation panel (custom_mulestation.xml). Recolour in all three places. -->
 <Page Name="BagMat"
-      Activated="true" eq2usescomwndcontrols="true" BackgroundOpacity="1.000"
+      Activated="true" eq2usescomwndcontrols="true" allowcloseontop="true" BackgroundOpacity="1.000"
       Location="160,150" MaximumSize="2560,1440" MinimumSize="300,200"
-      ScrollExtent="2200,716" Size="2200,716" UserMovable="true" UserResizable="true">
+      ScrollExtent="2200,716" Size="2200,716" AbsorbsInput="false" UserMovable="true" UserResizable="false">
 
     <!-- title bar (grab handle + close) -->
     <Page Name="titlebar" BackgroundOpacity="1.000" Location="0,0"

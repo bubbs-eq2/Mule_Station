@@ -76,7 +76,7 @@
                 OnPress="Parent.Parent.CmdHouse.Visible=true" Tooltip="Toggle house vault" />
         <Button Name="O_BagMat" Location="118,66" Size="100,22" Text="Bag Mat"
                 Style="/CommonElements.SmallPushButton.data.style"
-                OnPress="Parent.Parent.CmdBagMat.Visible=true" Tooltip="Open the colored bag-staging backdrop" />
+                OnPress="Parent.Parent.CmdBagMat.Visible=true" Tooltip="Open the bag-staging backdrop (Esc or X closes)" />
 
         <!-- WEB APP (purple) -->
         <Text Name="LblWeb" AbsorbsInput="false" Font="/TextStyles.Large.LargeStyle"
